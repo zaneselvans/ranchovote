@@ -1,0 +1,86 @@
+repos:
+  # Quick content checks based on grepping for python specific patterns:
+  - repo: https://github.com/pre-commit/pygrep-hooks
+    rev: v1.10.0
+    hooks:
+      - id: rst-backticks # Find single rather than double backticks
+      - id: rst-directive-colons # Missing double-colons after directives
+      - id: rst-inline-touching-normal # Inline code should never touch normal text
+      - id: python-use-type-annotations # Use annotations not old-style type comments
+
+  # Other file formatting, plus common Git mistakes & text file standardization:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-added-large-files # Don't accidentally commit giant files.
+      - id: check-merge-conflict # Watch for lingering merge markers.
+      - id: check-yaml # Validate all YAML files.
+      - id: check-case-conflict # Avoid case sensitivity in file names.
+      - id: debug-statements # Watch for lingering debugger calls.
+      - id: mixed-line-ending # Only newlines, no line-feeds.
+        args: ["--fix=lf"]
+      - id: name-tests-test # Follow PyTest naming convention.
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+
+  ########################################################################################
+  # Formatters: hooks that re-write Python and RST files
+  ########################################################################################
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.4
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: https://github.com/rbubley/mirrors-prettier
+    rev: v3.6.2
+    hooks:
+      - id: prettier
+        types_or: [yaml]
+
+  ####################################################################################
+  # Linters: hooks that check but don't alter files
+  ####################################################################################
+
+  # Check for errors in restructuredtext (.rst) files under the doc hierarchy
+  - repo: https://github.com/PyCQA/doc8
+    rev: v2.0.0
+    hooks:
+      - id: doc8
+        args: [--config, pyproject.toml]
+
+  # Check Github Actions
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.7
+    hooks:
+      - id: actionlint
+
+  ########################################################################################
+  # Custom local hooks
+  ########################################################################################
+  - repo: local
+    hooks:
+      # Run the unit tests
+      - id: unit-tests
+        name: unit-tests
+        stages: [commit]
+        language: system
+        verbose: false
+        pass_filenames: false
+        always_run: true
+        entry: uv run pytest --doctest-modules src/ranchobud tests/unit
+
+# Configuration for pre-commit.ci
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+
+    For more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: main
+  autoupdate_commit_msg: "[pre-commit.ci] pre-commit autoupdate"
+  autoupdate_schedule: weekly
+  skip: [unit-tests]
+  submodules: false
