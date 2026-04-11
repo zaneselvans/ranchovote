@@ -1,0 +1,66 @@
+[project]
+site_name = "Ranked Choice Budgeting"
+site_description = "A package for coordinating collaborative ranked choice budgeting processes."
+site_author = "Zane Selvans"
+site_url = "https://zaneselvans.github.io/ranchobud"
+copyright = '<a href="https://creativecommons.org/licenses/by/4.0/">CC-BY-4.0</a> &copy; 2026 Zane Selvans'
+repo_name = "zaneselvans/ranchobud"
+repo_url = "https://github.com/zaneselvans/ranchobud"
+edit_uri = "edit/main/docs"
+plugins = { search = {}, tags = {}, "git-committers" = { repository = "zaneselvans/ranchobud", branch = "main" }, "git-revision-date-localized" = {} }
+
+[project.theme]
+language = "en"
+features = ["content.action.edit", "content.action.view", "search.suggest"]
+
+[project.theme.icon]
+repo = "fontawesome/brands/git-alt"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "default"
+primary = "green"
+accent = "yellow"
+toggle.icon = "material/brightness-7"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+primary = "green"
+accent = "yellow"
+toggle.icon = "material/brightness-4"
+toggle.name = "Switch to light mode"
+
+[project.extra.analytics]
+provider = "google"
+property = "G-EXWBBTVMWK"
+
+[[project.extra.social]]
+icon = "fontawesome/brands/github"
+link = "https://github.com/zaneselvans"
+name = "Zane Selvans on GitHub"
+
+[[project.extra.social]]
+icon = "fontawesome/brands/bluesky"
+link = "https://bsky.app/profile/zaneselvans.org"
+name = "Zane Selvans on BlueSky"
+
+[[project.extra.social]]
+icon = "fontawesome/brands/mastodon"
+link = "https://social.coop/@ZaneSelvans"
+name = "Zane Selvans on Mastodon"
+
+[[project.extra.social]]
+icon = "fontawesome/brands/linkedin"
+link = "https://www.linkedin.com/in/zane-selvans"
+name = "Zane Selvans on LinkedIn"
+
+[project.markdown_extensions]
+mdx_truly_sane_lists = {}
+"pymdownx.highlight" = { anchor_linenums = true, line_spans = "__span", pygments_lang_class = true }
+"pymdownx.inlinehilite" = {}
+"pymdownx.snippets" = {}
+"pymdownx.superfences" = {}
+toc = { permalink = "#" }
+mdx_gh_links = {}

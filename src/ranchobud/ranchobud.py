@@ -27,15 +27,16 @@ from pydantic import BaseModel
 
 Projects = TypedDict("Projects", {str: float})
 
+my_list = ["one", "two"]
 # Class defining a set of participants and their contributions.
 
-Funders = TypedDict("Participants", {str: float})
+Funders = TypedDict("Funders", {str: float})
 
 
 class RankedPreferences(BaseModel):
-    """A class defining the ranked preferences of participants for projects."""
+    """A class defining the ranked preferences of funders for projects."""
 
     projects: Projects
-    participants: Funders
+    funders: Funders
     rankings: pd.DataFrame
-    """A DataFrame with participants as rows and projects as columns."""
+    """A DataFrame with funders as rows and projects as columns."""

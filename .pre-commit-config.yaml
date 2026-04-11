@@ -10,7 +10,7 @@ repos:
 
   # Other file formatting, plus common Git mistakes & text file standardization:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: check-added-large-files # Don't accidentally commit giant files.
       - id: check-merge-conflict # Watch for lingering merge markers.
@@ -22,27 +22,51 @@ repos:
       - id: name-tests-test # Follow PyTest naming convention.
       - id: trailing-whitespace
       - id: end-of-file-fixer
+      - id: pretty-format-json
+        args: [--autofix, --indent=4, --no-sort-keys]
 
   ########################################################################################
-  # Formatters: hooks that re-write Python and RST files
+  # Formatters: hooks that re-write Python and other files in a standard way.
   ########################################################################################
+
+  - repo: https://github.com/hukkin/mdformat
+    rev: 1.0.0
+    hooks:
+      - id: mdformat
+        additional_dependencies:
+          - mdformat-footnote
+          - mdformat-front-matters
+          - mdformat-gfm
+          - mdformat-mkdocs
+          - mdformat_simple_breaks
+          - mdformat-wikilink
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.4
+    rev: v0.15.10
     hooks:
       - id: ruff-check
         args: [--fix]
       - id: ruff-format
 
   - repo: https://github.com/rbubley/mirrors-prettier
-    rev: v3.6.2
+    rev: v3.8.2
     hooks:
       - id: prettier
         types_or: [yaml]
 
+  - repo: https://github.com/ComPWA/taplo-pre-commit
+    rev: v0.9.3
+    hooks:
+      - id: taplo-format
+
   ####################################################################################
   # Linters: hooks that check but don't alter files
   ####################################################################################
+
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.22.0
+    hooks:
+      - id: markdownlint-cli2
 
   # Check for errors in restructuredtext (.rst) files under the doc hierarchy
   - repo: https://github.com/PyCQA/doc8
@@ -53,24 +77,33 @@ repos:
 
   # Check Github Actions
   - repo: https://github.com/rhysd/actionlint
-    rev: v1.7.7
+    rev: v1.7.12
     hooks:
       - id: actionlint
+
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1
+    hooks:
+      - id: shellcheck
+
+  - repo: https://github.com/adhtruong/mirrors-typos
+    rev: v1.45.0
+    hooks:
+      - id: typos
 
   ########################################################################################
   # Custom local hooks
   ########################################################################################
+
+  # Type check python files
   - repo: local
     hooks:
-      # Run the unit tests
-      - id: unit-tests
-        name: unit-tests
-        stages: [commit]
+      - id: ty-check
+        name: ty check
+        entry: uv run ty check
         language: system
-        verbose: false
+        types: [python]
         pass_filenames: false
-        always_run: true
-        entry: uv run pytest --doctest-modules src/ranchobud tests/unit
 
 # Configuration for pre-commit.ci
 ci:
@@ -82,5 +115,5 @@ ci:
   autoupdate_branch: main
   autoupdate_commit_msg: "[pre-commit.ci] pre-commit autoupdate"
   autoupdate_schedule: weekly
-  skip: [unit-tests]
+  skip: [ty-check]
   submodules: false
