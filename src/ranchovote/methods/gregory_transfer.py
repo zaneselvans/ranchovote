@@ -1,11 +1,8 @@
-"""Inclusive Gregory counting method for the first concrete ranchovote variant.
+"""Gregory-transfer round-based counting method presets and implementation.
 
-Inclusive Gregory is a useful first implementation because it follows the classic STV
-story of tallying, selecting, transferring surplus, and excluding. That makes it much
-easier to explain than iterative methods, while still exercising the same state,
-tracing, persistence, and rule-composition architecture that later methods will use.
-This implementation is also the clearest example of keeping threshold semantics in the
-method configuration rather than baking them into the core contest input models.
+This module implements a reusable Gregory-transfer STV family. The canonical
+Inclusive Gregory label is reserved for narrower presets whose overall behavior is
+close enough to outside expectations to justify the literature-facing name.
 """
 
 from collections.abc import Mapping
@@ -33,22 +30,20 @@ from ranchovote.trace import ContestResult
 
 @dataclass(slots=True)
 class InclusiveGregoryCountingMethod(RoundBasedCountingMethod):
-    """Concrete round-based STV method using Inclusive Gregory transfers.
+    """Concrete Gregory-transfer round-based STV implementation.
 
-    This class demonstrates the framework's main configuration pattern: the contest
-    inputs stay generic, while method-specific behavior is injected through rule
-    objects. In particular, Inclusive Gregory does not assume one built-in notion of
-    threshold. Callers choose whether the run uses a contest-wide threshold, explicit
-    per-option thresholds, or another `ThresholdRule` implementation.
+    The stable family identity of this implementation is Gregory-transfer STV. Some
+    presets, such as the uniform-threshold constructor, may be described publicly as
+    Inclusive Gregory. More experimental threshold configurations remain in the same
+    family while using a more descriptive non-canonical public label.
     """
 
     @classmethod
     def with_threshold_rule(cls, *, threshold_rule: ThresholdRule) -> Self:
-        """Return Inclusive Gregory configured with an explicit threshold rule.
+        """Return Gregory-transfer STV with an explicit custom threshold rule.
 
-        This is the most general constructor. Higher-level helpers such as
-        `with_uniform_threshold()` and `with_option_thresholds()` are thin wrappers
-        around this method.
+        This is the most general constructor. It intentionally uses a family-level
+        descriptive label rather than the narrower Inclusive Gregory literature name.
         """
         return cls(
             threshold_rule=threshold_rule,
@@ -57,18 +52,26 @@ class InclusiveGregoryCountingMethod(RoundBasedCountingMethod):
             surplus_transfer_rule=InclusiveGregorySurplusTransferRule(),
             exclusion_rule=LowestTallyExclusionRule(),
             tie_break_rule=InputOrderTieBreakRule(),
-            method_name="inclusive-gregory",
+            family_id="gregory-transfer-stv",
+            method_name="gregory-transfer-stv (custom threshold rule)",
         )
 
     @classmethod
     def with_uniform_threshold(cls, *, threshold: Decimal) -> Self:
-        """Return Inclusive Gregory using one contest-wide selection threshold.
+        """Return the canonical Inclusive Gregory preset with one threshold.
 
         Use this for classical STV-style examples or other contests in which every
-        option should be evaluated against the same support target.
+        option is evaluated against the same selection target.
         """
-        return cls.with_threshold_rule(
-            threshold_rule=ConstantThresholdRule(threshold=threshold)
+        return cls(
+            threshold_rule=ConstantThresholdRule(threshold=threshold),
+            ballot_allocation_rule=FirstActivePreferenceAllocationRule(),
+            selection_rule=ThresholdSelectionRule(),
+            surplus_transfer_rule=InclusiveGregorySurplusTransferRule(),
+            exclusion_rule=LowestTallyExclusionRule(),
+            tie_break_rule=InputOrderTieBreakRule(),
+            family_id="gregory-transfer-stv",
+            method_name="inclusive-gregory",
         )
 
     @classmethod
@@ -77,15 +80,22 @@ class InclusiveGregoryCountingMethod(RoundBasedCountingMethod):
         *,
         thresholds_by_option: Mapping[OptionId, Decimal],
     ) -> Self:
-        """Return Inclusive Gregory using explicit thresholds for each option.
+        """Return Gregory-transfer STV using explicit thresholds for each option.
 
-        Use this when option support targets are part of the run configuration rather
-        than being derived from one contest-wide constant.
+        This remains in the same Gregory-transfer family, but uses a descriptive
+        non-canonical label because the threshold configuration is more specialized.
         """
-        return cls.with_threshold_rule(
+        return cls(
             threshold_rule=OptionThresholdMapRule(
                 thresholds_by_option=thresholds_by_option
-            )
+            ),
+            ballot_allocation_rule=FirstActivePreferenceAllocationRule(),
+            selection_rule=ThresholdSelectionRule(),
+            surplus_transfer_rule=InclusiveGregorySurplusTransferRule(),
+            exclusion_rule=LowestTallyExclusionRule(),
+            tie_break_rule=InputOrderTieBreakRule(),
+            family_id="gregory-transfer-stv",
+            method_name="gregory-transfer-stv (per-option thresholds)",
         )
 
     def run(self, *, data: ContestData) -> ContestResult:

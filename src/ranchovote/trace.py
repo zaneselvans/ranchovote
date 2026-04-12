@@ -4,6 +4,10 @@ The trace layer records what happened during a run in a machine-readable form th
 useful for debugging, user-facing explanations, persistence, and future visualizations.
 It separates event and snapshot data from the live counting state so completed runs can
 be inspected long after the algorithm has finished.
+
+This module uses both dataclasses and Pydantic on purpose. Dataclasses are used for
+the internal event, snapshot, and result records created during counting. Pydantic is
+used for persisted run views that cross back into storage, API, or UI boundaries.
 """
 
 from dataclasses import dataclass, field
@@ -69,12 +73,18 @@ class ContestResult:
 
 
 class PersistedContestRunSummary(BaseModel):
-    """Compact summary of one persisted contest run."""
+    """Compact summary of one persisted contest run.
+
+    This uses Pydantic because persisted summaries are reconstructed from storage and
+    exposed to interface layers, so boundary-style validation and serialization are
+    useful again here.
+    """
 
     model_config = ConfigDict(frozen=True)
 
     run_id: UUID
     created_at: datetime
+    family_id: str
     method_name: str
     selected_option_ids: tuple[OptionId, ...]
     event_count: int = Field(ge=0)
@@ -82,7 +92,11 @@ class PersistedContestRunSummary(BaseModel):
 
 
 class PersistedContestRun(BaseModel):
-    """Fully hydrated persisted contest run for UI and API consumers."""
+    """Fully hydrated persisted contest run for UI and API consumers.
+
+    Unlike the low-level trace records, this model sits at a read boundary and is
+    therefore represented as a Pydantic model.
+    """
 
     model_config = ConfigDict(frozen=True)
 

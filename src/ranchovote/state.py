@@ -4,6 +4,11 @@ Unlike the input models, this state changes from step to step as tallies are upd
 options are selected or excluded, and trace records are captured. The goal is to keep
 all transient counting state in one place so methods and rules can cooperate without
 mutating the immutable contest inputs.
+
+This module uses dataclasses rather than Pydantic models because the objects here are
+internal working state, not boundary inputs. By the time a `ContestState` exists, the
+contest data has already been validated and the count mainly needs lightweight mutable
+containers.
 """
 
 from collections.abc import Mapping
@@ -28,7 +33,11 @@ class OptionStatus(StrEnum):
 
 @dataclass(slots=True)
 class ContestState:
-    """Mutable state shared by concrete counting methods during a run."""
+    """Mutable state shared by concrete counting methods during a run.
+
+    `ContestState` is intentionally a dataclass because it models evolving in-memory
+    algorithm state rather than validated external input.
+    """
 
     step_index: int
     round_number: int

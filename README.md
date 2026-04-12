@@ -6,7 +6,7 @@ The repository currently includes:
 
 - immutable contest input models under `src/ranchovote/models.py`
 - mutable counting state and structured trace output under `src/ranchovote/state.py` and `src/ranchovote/trace.py`
-- a first concrete round-based method using Inclusive Gregory transfers under `src/ranchovote/methods/inclusive_gregory.py`
+- a first concrete round-based method using Gregory-transfer STV under `src/ranchovote/methods/gregory_transfer.py`, with the canonical Inclusive Gregory preset exposed from that family module
 - DuckDB-backed trace persistence under `src/ranchovote/storage/`
 - FastAPI and Textual trace explorers launched from the CLI in `src/ranchovote/cli.py`
 

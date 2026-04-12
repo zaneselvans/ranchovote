@@ -1,8 +1,8 @@
-"""Tests for the first concrete Inclusive Gregory counting method."""
+"""Tests for the Gregory-transfer counting method family."""
 
 from decimal import Decimal
 
-from ranchovote.methods.inclusive_gregory import InclusiveGregoryCountingMethod
+from ranchovote.methods.gregory_transfer import InclusiveGregoryCountingMethod
 from ranchovote.models import Ballot, ContestData, Option, Participant
 
 

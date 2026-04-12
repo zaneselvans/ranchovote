@@ -6,6 +6,10 @@ use Pydantic so validation happens at the boundary, allowing the rest of the cou
 code to assume the inputs are internally consistent. Threshold semantics are kept out
 of these core models so different counting methods can interpret the same contest data
 under different selection rules.
+
+In ranchovote, this module is the main example of when Pydantic is preferred over a
+dataclass: these objects are trusted only after validation, and once constructed they
+act as the immutable contest definition shared by every counting method.
 """
 
 from decimal import Decimal
@@ -70,7 +74,9 @@ class ContestData(BaseModel):
     specific concepts such as thresholds, quotas, or seat counts belong in method
     configuration and rule objects rather than in the core contest data model. That
     separation lets one validated contest be explored under several methods or
-    threshold regimes without rewriting the input data.
+    threshold regimes without rewriting the input data. This model uses Pydantic
+    because it sits at the validation boundary for a contest run: once it has been
+    constructed, the rest of the application can treat it as trusted input.
     """
 
     model_config = ConfigDict(frozen=True)

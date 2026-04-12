@@ -56,6 +56,7 @@ class DuckDbTraceStore(TraceStore, TraceRepository):
         self,
         *,
         contest_data: ContestData,
+        family_id: str,
         method_name: str,
         result: ContestResult,
     ) -> None:
@@ -71,6 +72,7 @@ class DuckDbTraceStore(TraceStore, TraceRepository):
                     [
                         {
                             "run_id": run_id,
+                            "family_id": family_id,
                             "method_name": method_name,
                             "selected_option_ids_json": json.dumps(
                                 list(result.selected_option_ids)
@@ -224,6 +226,7 @@ class DuckDbTraceStore(TraceStore, TraceRepository):
         return PersistedContestRunSummary(
             run_id=row["run_id"],
             created_at=row["created_at"],
+            family_id=row["family_id"],
             method_name=row["method_name"],
             selected_option_ids=tuple(json.loads(row["selected_option_ids_json"])),
             event_count=row["event_count"],

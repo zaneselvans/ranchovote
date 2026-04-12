@@ -24,6 +24,7 @@ class TraceStore(ABC):
         self,
         *,
         contest_data: ContestData,
+        family_id: str,
         method_name: str,
         result: ContestResult,
     ) -> None:

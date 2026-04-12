@@ -4,7 +4,7 @@ from decimal import Decimal
 
 import pytest
 
-from ranchovote.methods.inclusive_gregory import InclusiveGregoryCountingMethod
+from ranchovote.methods.gregory_transfer import InclusiveGregoryCountingMethod
 from ranchovote.methods.meek import MeekCountingMethod
 from ranchovote.models import Ballot, ContestData, Option, Participant
 from ranchovote.rules.allocation import FirstActivePreferenceAllocationRule
@@ -198,10 +198,20 @@ def test_counting_method_base_classes_expose_names_and_initial_state() -> None:
     inclusive_gregory = InclusiveGregoryCountingMethod.with_uniform_threshold(
         threshold=Decimal(10)
     )
-    assert inclusive_gregory.name == "inclusive-gregory"
+    assert inclusive_gregory.family_id == "gregory-transfer-stv"
+    assert inclusive_gregory.method_name == "inclusive-gregory"
     assert inclusive_gregory.initial_state(data=data).active_option_ids() == (
         "alpha",
         "beta",
+    )
+
+    inclusive_gregory_variant = InclusiveGregoryCountingMethod.with_option_thresholds(
+        thresholds_by_option={"alpha": Decimal(10), "beta": Decimal(5)}
+    )
+    assert inclusive_gregory_variant.family_id == "gregory-transfer-stv"
+    assert (
+        inclusive_gregory_variant.method_name
+        == "gregory-transfer-stv (per-option thresholds)"
     )
 
     meek = MeekCountingMethod(
@@ -213,7 +223,8 @@ def test_counting_method_base_classes_expose_names_and_initial_state() -> None:
         max_iterations=10,
         method_name="meek",
     )
-    assert meek.name == "meek"
+    assert meek.family_id == "iterative-stv"
+    assert meek.method_name == "meek"
     assert meek.initial_state(data=data).active_option_ids() == ("alpha", "beta")
 
     with pytest.raises(NotImplementedError, match="not implemented"):

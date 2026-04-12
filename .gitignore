@@ -19,3 +19,4 @@ wheels/
 .vscode/*
 *.code-workspace
 site/
+commit.txt

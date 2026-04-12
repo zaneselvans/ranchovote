@@ -1,5 +1,6 @@
 """Tests for contest orchestration, serialization, services, and web interfaces."""
 
+import inspect
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
@@ -11,11 +12,12 @@ from fastapi.testclient import TestClient
 from ranchovote.contest import Contest
 from ranchovote.io.json import serialize_contest_data, serialize_contest_result
 from ranchovote.methods.base import CountingMethod
-from ranchovote.methods.inclusive_gregory import InclusiveGregoryCountingMethod
+from ranchovote.methods.gregory_transfer import InclusiveGregoryCountingMethod
 from ranchovote.models import Ballot, ContestData, Option, Participant
 from ranchovote.services.traces import TraceService
 from ranchovote.state import ContestState
-from ranchovote.storage.base import TraceRepository
+from ranchovote.storage.base import TraceRepository, TraceStore
+from ranchovote.storage.schema import contest_runs_table
 from ranchovote.trace import (
     ContestResult,
     PersistedContestRun,
@@ -63,11 +65,8 @@ class StubCountingMethod(CountingMethod):
     """Minimal counting method used to test Contest delegation."""
 
     result: ContestResult
-
-    @property
-    def name(self) -> str:
-        """Return a stable method name for the stub."""
-        return "stub"
+    family_id: str = "stub-family"
+    method_name: str = "stub"
 
     def initial_state(self, *, data: ContestData) -> ContestState:
         """Return the standard initial state."""
@@ -105,6 +104,7 @@ def build_persisted_run() -> PersistedContestRun:
     summary = PersistedContestRunSummary(
         run_id=uuid4(),
         created_at=datetime.now(),
+        family_id="gregory-transfer-stv",
         method_name="inclusive-gregory",
         selected_option_ids=result.selected_option_ids,
         event_count=len(result.audit_log),
@@ -156,6 +156,27 @@ def test_trace_service_delegates_to_repository() -> None:
     assert service.get_run(run_id=uuid4()) is None
 
 
+def test_shared_naming_contract_stays_aligned_across_layers() -> None:
+    """Shared identifiers should keep the same names across method, trace, and storage layers."""
+    counting_method_fields = set(CountingMethod.__annotations__)
+    persisted_summary_fields = set(PersistedContestRunSummary.model_fields)
+    storage_columns = set(contest_runs_table.c.keys())
+    trace_store_parameters = set(inspect.signature(TraceStore.write_result).parameters)
+
+    expected_shared_names = {"family_id", "method_name"}
+    legacy_names = {"family_name", "method_family", "name"}
+
+    assert expected_shared_names <= counting_method_fields
+    assert expected_shared_names <= persisted_summary_fields
+    assert expected_shared_names <= storage_columns
+    assert expected_shared_names <= trace_store_parameters
+
+    assert legacy_names.isdisjoint(counting_method_fields)
+    assert legacy_names.isdisjoint(persisted_summary_fields)
+    assert legacy_names.isdisjoint(storage_columns)
+    assert legacy_names.isdisjoint(trace_store_parameters)
+
+
 def test_trace_api_exposes_health_run_list_and_run_detail() -> None:
     """The FastAPI app should expose all current trace explorer routes."""
     persisted_run = build_persisted_run()
@@ -166,6 +187,7 @@ def test_trace_api_exposes_health_run_list_and_run_detail() -> None:
 
     run_list_response = client.get("/runs")
     assert run_list_response.status_code == 200
+    assert run_list_response.json()[0]["family_id"] == "gregory-transfer-stv"
     assert run_list_response.json()[0]["method_name"] == "inclusive-gregory"
 
     run_detail_response = client.get(f"/runs/{persisted_run.summary.run_id}")

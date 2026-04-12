@@ -6,7 +6,7 @@ from uuid import UUID
 
 import duckdb
 
-from ranchovote.methods.inclusive_gregory import InclusiveGregoryCountingMethod
+from ranchovote.methods.gregory_transfer import InclusiveGregoryCountingMethod
 from ranchovote.models import Ballot, ContestData, Option, Participant
 from ranchovote.storage.duckdb import DuckDbTraceStore
 
@@ -50,6 +50,7 @@ def test_duckdb_trace_store_persists_run_rows(tmp_path: Path) -> None:
 
     trace_store.write_result(
         contest_data=contest_data,
+        family_id="gregory-transfer-stv",
         method_name="inclusive-gregory",
         result=result,
     )
@@ -76,6 +77,7 @@ def test_duckdb_trace_store_persists_run_rows(tmp_path: Path) -> None:
     run_summaries = trace_store.list_runs()
 
     assert len(run_summaries) == 1
+    assert run_summaries[0].family_id == "gregory-transfer-stv"
     assert run_summaries[0].method_name == "inclusive-gregory"
     assert run_summaries[0].selected_option_ids == ("solar", "bikes")
 

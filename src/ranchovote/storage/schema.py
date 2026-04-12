@@ -32,10 +32,16 @@ contest_runs_table = Table(
         comment="Timestamp recording when the run row was persisted.",
     ),
     Column(
+        "family_id",
+        String,
+        nullable=False,
+        comment="Stable family identifier for the counting method used for this run.",
+    ),
+    Column(
         "method_name",
         String,
         nullable=False,
-        comment="Name of the counting method used for this run.",
+        comment="Public label used to describe the counting method for this run.",
     ),
     Column(
         "selected_option_ids_json",
@@ -47,7 +53,12 @@ contest_runs_table = Table(
         "contest_data_json",
         Text,
         nullable=False,
-        comment="JSON serialization of the immutable contest input data.",
+        comment=(
+            "JSON serialization of the immutable contest input data. This is stored "
+            "inline as a reconstruction artifact for now, but may eventually move to "
+            "a separate contests table if large contest inputs or repeated runs over "
+            "the same contest become common."
+        ),
     ),
     Column(
         "event_count",

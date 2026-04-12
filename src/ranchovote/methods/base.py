@@ -22,10 +22,11 @@ from ranchovote.trace import ContestResult
 class CountingMethod(ABC):
     """Top-level interface for a complete contest counting method."""
 
-    @property
-    @abstractmethod
-    def name(self) -> str:
-        """Return the human-readable name of the counting method."""
+    family_id: str
+    """Stable family identifier for this counting method."""
+
+    method_name: str
+    """Human-readable name of the counting method."""
 
     @abstractmethod
     def initial_state(self, *, data: ContestData) -> ContestState:
@@ -46,12 +47,8 @@ class RoundBasedCountingMethod(CountingMethod, ABC):
     surplus_transfer_rule: SurplusTransferRule
     exclusion_rule: ExclusionRule
     tie_break_rule: TieBreakRule
+    family_id: str = "round-based-stv"
     method_name: str = "round-based-stv"
-
-    @property
-    def name(self) -> str:
-        """Return the configured name of this counting method."""
-        return self.method_name
 
     def initial_state(self, *, data: ContestData) -> ContestState:
         """Build the default initial state for a round-based count."""
@@ -68,12 +65,8 @@ class IterativeCountingMethod(CountingMethod, ABC):
     tie_break_rule: TieBreakRule
     convergence_tolerance: Decimal
     max_iterations: int
+    family_id: str = "iterative-stv"
     method_name: str = "iterative-stv"
-
-    @property
-    def name(self) -> str:
-        """Return the configured name of this counting method."""
-        return self.method_name
 
     def initial_state(self, *, data: ContestData) -> ContestState:
         """Build the default initial state for an iterative count."""
