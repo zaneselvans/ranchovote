@@ -45,6 +45,9 @@ specialization.
 - Keep immutable input data separate from mutable election state.
 - Keep structured traces as the source of truth; text logs and JSON exports are derived views.
 - When the same concept crosses method interfaces, trace models, storage schema, and API responses, keep one field name across those layers instead of introducing layer-specific synonyms.
+- Use `git mv` for whole-file moves when possible.
+- Keep file relocation separate from content edits so renames remain easy to review.
+- When a move and an edit are both needed, perform the move first and then make content changes in a separate step.
 - Update docstrings whenever changing substantive behavior.
 - Prefer popular, well-maintained, well-designed, and well-documented open source libraries over bespoke in-repo implementations for common needs.
 - Avoid catch-all modules like `utils.py` or `helpers.py`.
@@ -112,7 +115,7 @@ Run the smallest relevant set of checks for the files you changed.
 
 - `pixi run ruff-check`
 - `pixi run ruff-format`
-- `pixi run tests`
+- `pixi run pytest-coverage`
 - `pixi run ty-check` whenever the change is substantial enough to justify `pixi run ruff-check`; it is fast and helps catch interface drift
 
 ### Markdown changes
