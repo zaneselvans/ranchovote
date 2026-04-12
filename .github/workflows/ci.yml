@@ -227,7 +227,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: test-pypi
-      url: https://test.pypi.org/project/ranchobud/
+      url: https://test.pypi.org/project/ranchovote/
     permissions:
       id-token: write
       attestations: write
