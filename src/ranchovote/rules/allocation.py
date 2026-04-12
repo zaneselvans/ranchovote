@@ -37,7 +37,7 @@ class FirstActivePreferenceAllocationRule(BallotAllocationRule):
         data: ContestData,
         state: ContestState,
     ) -> Mapping[OptionId, Decimal]:
-        """Return a single-project allocation for the first active preference."""
+        """Return a single-option allocation for the first active preference."""
         del data
         if ballot.participant_id not in state.ballot_weights:
             msg = f"Missing ballot weight for participant_id: {ballot.participant_id}"

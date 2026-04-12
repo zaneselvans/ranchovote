@@ -1,10 +1,12 @@
-"""Core package for the ranchovote ranked-choice co-budgeting project.
+"""Core package for the ranchovote ranked-choice contest framework.
 
 The package explores how single transferable vote style counting ideas can be adapted
-to collaborative budgeting, where participants may contribute different amounts of
-funding and options may require different support to succeed. The codebase is split so
-that the contest domain model, counting logic, audit trail, serialization formats,
-and persisted storage all remain understandable and independently testable.
+to a broader family of ranked-choice contests, including classical STV elections,
+participatory budgeting, and other resource-allocation processes where participants
+rank options and those options may require different levels of support to succeed.
+The codebase is split so that the contest domain model, counting logic, audit trail,
+serialization formats, and persisted storage all remain understandable and
+independently testable.
 
 The main package layout is:
 

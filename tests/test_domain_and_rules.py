@@ -56,7 +56,7 @@ def build_contest_data() -> ContestData:
 
 
 def test_ballot_rejects_duplicate_rankings() -> None:
-    """Ballots should reject repeated project IDs."""
+    """Ballots should reject repeated option IDs."""
     with pytest.raises(ValueError, match="must not contain duplicate"):
         Ballot(participant_id="alice", ranking=("alpha", "alpha"))
 
@@ -88,7 +88,7 @@ def test_ballot_rejects_duplicate_rankings() -> None:
             ),
             (),
             "Option IDs must be unique",
-            id="duplicate-projects",
+            id="duplicate-options",
         ),
         pytest.param(
             (
@@ -176,7 +176,7 @@ def test_ballot_rejects_duplicate_rankings() -> None:
             ),
             (Ballot(participant_id="alice", ranking=("missing",)),),
             "Unknown values: missing",
-            id="unknown-project",
+            id="unknown-option",
         ),
     ],
 )

@@ -311,7 +311,7 @@ class DuckDbTraceStore(TraceStore, TraceRepository):
         tallies: dict[OptionId, Decimal],
         thresholds: dict[OptionId, Decimal],
     ) -> RoundSnapshot:
-        """Build one snapshot model from a grouped set of project rows."""
+        """Build one snapshot model from a grouped set of option rows."""
         step_index, phase_type, phase_index, round_number, iteration_number = key
         return RoundSnapshot(
             step_index=step_index,

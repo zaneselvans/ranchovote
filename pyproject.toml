@@ -1,7 +1,7 @@
 [project]
 name = "ranchovote"
 dynamic = ["version"]
-description = "A collaborative budgeting algorithm based on Single Transferrable Vote."
+description = "A framework for ranked-choice contests inspired by Single Transferable Vote."
 license = { file = "LICENSE.txt" }
 readme = "README.md"
 requires-python = ">=3.14"

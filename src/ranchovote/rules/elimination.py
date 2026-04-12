@@ -61,7 +61,7 @@ class InputOrderTieBreakRule(TieBreakRule):
         for option in data.options:
             if option.option_id in tied_option_ids:
                 return option.option_id
-        msg = "Tie-break candidates must all appear in contest input data."
+        msg = "Tie-break options must all appear in contest input data."
         raise ValueError(msg)
 
 

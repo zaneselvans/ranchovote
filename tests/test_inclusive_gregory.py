@@ -6,7 +6,7 @@ from ranchovote.methods.inclusive_gregory import InclusiveGregoryCountingMethod
 from ranchovote.models import Ballot, ContestData, Option, Participant
 
 
-def test_elects_projects_that_meet_threshold_immediately() -> None:
+def test_selects_options_that_meet_threshold_immediately() -> None:
     """Options that meet their thresholds in the first round are selected."""
     contest_data = ContestData(
         options=(
@@ -94,8 +94,8 @@ def test_transfers_surplus_to_next_active_preference() -> None:
     assert result.snapshots[1].tallies["beta"] == Decimal(7)
 
 
-def test_eliminates_unfunded_project_when_no_surplus_reaches_it() -> None:
-    """Options that never reach threshold are excluded after other winners are funded."""
+def test_excludes_unselected_option_when_no_surplus_reaches_it() -> None:
+    """Options that never reach threshold are excluded after other winners are selected."""
     contest_data = ContestData(
         options=(
             Option(
