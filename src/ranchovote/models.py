@@ -3,7 +3,9 @@
 These models describe the problem definition for a contest run: which options are
 eligible, who is participating, and how each participant ranked those options. They
 use Pydantic so validation happens at the boundary, allowing the rest of the counting
-code to assume the inputs are internally consistent.
+code to assume the inputs are internally consistent. Threshold semantics are kept out
+of these core models so different counting methods can interpret the same contest data
+under different selection rules.
 """
 
 from decimal import Decimal
@@ -15,24 +17,32 @@ ParticipantId = str
 
 
 class Option(BaseModel):
-    """Immutable description of one option that may be selected."""
+    """Immutable description of one option that may be selected.
+
+    Option intentionally contains only identity and human-facing metadata. Selection
+    thresholds are modeled separately so the same option set can be reused across
+    different contest types and counting methods.
+    """
 
     model_config = ConfigDict(frozen=True)
 
     option_id: OptionId
-    required_support: Decimal = Field(gt=0)
     title: str = Field(min_length=1, max_length=50)
     description: str = Field(min_length=1)
 
 
 class Participant(BaseModel):
-    """Immutable description of a participant and their available weight."""
+    """Immutable description of a participant and their available weight.
+
+    The default weight of 1 keeps classical one-person-one-vote contests concise,
+    while still allowing weighted contests to override the value explicitly.
+    """
 
     model_config = ConfigDict(frozen=True)
 
     participant_id: ParticipantId
     name: str = Field(min_length=1)
-    weight: Decimal = Field(gt=0)
+    weight: Decimal = Field(default=Decimal(1), gt=0)
 
 
 class Ballot(BaseModel):
@@ -54,7 +64,14 @@ class Ballot(BaseModel):
 
 
 class ContestData(BaseModel):
-    """Validated, immutable input data shared by all contest methods."""
+    """Validated, immutable input data shared by all contest methods.
+
+    ContestData intentionally captures only the common ranked-ballot inputs. Method-
+    specific concepts such as thresholds, quotas, or seat counts belong in method
+    configuration and rule objects rather than in the core contest data model. That
+    separation lets one validated contest be explored under several methods or
+    threshold regimes without rewriting the input data.
+    """
 
     model_config = ConfigDict(frozen=True)
 

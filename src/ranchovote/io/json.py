@@ -17,7 +17,6 @@ class OptionJson(TypedDict):
     """JSON shape for one serialized contest option."""
 
     option_id: str
-    required_support: str
     title: str
     description: str
 

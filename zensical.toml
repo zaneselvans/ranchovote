@@ -1,6 +1,6 @@
 [project]
 site_name = "RanChoVote"
-site_description = "A package for coordinating collaborative ranked choice voting processes."
+site_description = "A package for coordinating and understanding ranked choice resource allocation contests."
 site_author = "Zane Selvans"
 site_url = "https://zaneselvans.github.io/ranchovote"
 copyright = '<a href="https://creativecommons.org/licenses/by/4.0/">CC-BY-4.0</a> &copy; 2026 Zane Selvans'
@@ -9,6 +9,9 @@ repo_url = "https://github.com/zaneselvans/ranchovote"
 edit_uri = "edit/main/docs"
 nav = [
   { Overview = "index.md" },
+  { Architecture = "architecture.md" },
+  { "RCV Resources" = "rcv-resources.md" },
+  { Roadmap = "roadmap.md" },
   { Glossary = "glossary.md" },
   { "Docs Build" = "docs-build.md" },
   { "API Reference" = "api/index.md" },

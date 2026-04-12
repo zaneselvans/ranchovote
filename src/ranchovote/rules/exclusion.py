@@ -28,7 +28,7 @@ class TieBreakRule(ABC):
         """Return the chosen option ID for the tie-breaking situation."""
 
 
-class EliminationRule(ABC):
+class ExclusionRule(ABC):
     """Determine which option should be excluded when no option is selected."""
 
     @abstractmethod
@@ -65,7 +65,7 @@ class InputOrderTieBreakRule(TieBreakRule):
         raise ValueError(msg)
 
 
-class LowestTallyEliminationRule(EliminationRule):
+class LowestTallyExclusionRule(ExclusionRule):
     """Exclude the active option with the lowest current tally."""
 
     def exclude_option(
@@ -84,7 +84,7 @@ class LowestTallyEliminationRule(EliminationRule):
             if state.statuses.get(option.option_id) == OptionStatus.ACTIVE
         ]
         if not active_option_ids:
-            msg = "Cannot eliminate an option when no active options remain."
+            msg = "Cannot exclude an option when no active options remain."
             raise ValueError(msg)
 
         lowest_tally = min(

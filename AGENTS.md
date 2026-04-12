@@ -112,7 +112,7 @@ Run the smallest relevant set of checks for the files you changed.
 - `pixi run ruff-check`
 - `pixi run ruff-format`
 - `pixi run tests`
-- `pixi run ty-check` when types or interfaces changed materially
+- `pixi run ty-check` whenever the change is substantial enough to justify `pixi run ruff-check`; it is fast and helps catch interface drift
 
 ### Markdown changes
 

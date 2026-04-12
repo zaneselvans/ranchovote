@@ -11,7 +11,7 @@ from decimal import Decimal
 
 from ranchovote.models import ContestData
 from ranchovote.rules.allocation import BallotAllocationRule
-from ranchovote.rules.elimination import EliminationRule, TieBreakRule
+from ranchovote.rules.exclusion import ExclusionRule, TieBreakRule
 from ranchovote.rules.selection import SelectionRule
 from ranchovote.rules.thresholds import ThresholdRule
 from ranchovote.rules.transfers import SurplusTransferRule
@@ -44,7 +44,7 @@ class RoundBasedCountingMethod(CountingMethod, ABC):
     ballot_allocation_rule: BallotAllocationRule
     selection_rule: SelectionRule
     surplus_transfer_rule: SurplusTransferRule
-    elimination_rule: EliminationRule
+    exclusion_rule: ExclusionRule
     tie_break_rule: TieBreakRule
     method_name: str = "round-based-stv"
 

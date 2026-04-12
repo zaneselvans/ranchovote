@@ -4,8 +4,11 @@ Inclusive Gregory is a useful first implementation because it follows the classi
 story of tallying, selecting, transferring surplus, and excluding. That makes it much
 easier to explain than iterative methods, while still exercising the same state,
 tracing, persistence, and rule-composition architecture that later methods will use.
+This implementation is also the clearest example of keeping threshold semantics in the
+method configuration rather than baking them into the core contest input models.
 """
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Self
@@ -13,12 +16,16 @@ from typing import Self
 from ranchovote.methods.base import RoundBasedCountingMethod
 from ranchovote.models import Ballot, ContestData, OptionId
 from ranchovote.rules.allocation import FirstActivePreferenceAllocationRule
-from ranchovote.rules.elimination import (
+from ranchovote.rules.exclusion import (
     InputOrderTieBreakRule,
-    LowestTallyEliminationRule,
+    LowestTallyExclusionRule,
 )
 from ranchovote.rules.selection import ThresholdSelectionRule
-from ranchovote.rules.thresholds import RequiredSupportThresholdRule
+from ranchovote.rules.thresholds import (
+    ConstantThresholdRule,
+    OptionThresholdMapRule,
+    ThresholdRule,
+)
 from ranchovote.rules.transfers import InclusiveGregorySurplusTransferRule
 from ranchovote.state import ContestState, OptionStatus
 from ranchovote.trace import ContestResult
@@ -26,19 +33,59 @@ from ranchovote.trace import ContestResult
 
 @dataclass(slots=True)
 class InclusiveGregoryCountingMethod(RoundBasedCountingMethod):
-    """Concrete round-based STV method using Inclusive Gregory transfers."""
+    """Concrete round-based STV method using Inclusive Gregory transfers.
+
+    This class demonstrates the framework's main configuration pattern: the contest
+    inputs stay generic, while method-specific behavior is injected through rule
+    objects. In particular, Inclusive Gregory does not assume one built-in notion of
+    threshold. Callers choose whether the run uses a contest-wide threshold, explicit
+    per-option thresholds, or another `ThresholdRule` implementation.
+    """
 
     @classmethod
-    def configured(cls) -> Self:
-        """Return the default Inclusive Gregory rule bundle for ranchovote."""
+    def with_threshold_rule(cls, *, threshold_rule: ThresholdRule) -> Self:
+        """Return Inclusive Gregory configured with an explicit threshold rule.
+
+        This is the most general constructor. Higher-level helpers such as
+        `with_uniform_threshold()` and `with_option_thresholds()` are thin wrappers
+        around this method.
+        """
         return cls(
-            threshold_rule=RequiredSupportThresholdRule(),
+            threshold_rule=threshold_rule,
             ballot_allocation_rule=FirstActivePreferenceAllocationRule(),
             selection_rule=ThresholdSelectionRule(),
             surplus_transfer_rule=InclusiveGregorySurplusTransferRule(),
-            elimination_rule=LowestTallyEliminationRule(),
+            exclusion_rule=LowestTallyExclusionRule(),
             tie_break_rule=InputOrderTieBreakRule(),
             method_name="inclusive-gregory",
+        )
+
+    @classmethod
+    def with_uniform_threshold(cls, *, threshold: Decimal) -> Self:
+        """Return Inclusive Gregory using one contest-wide selection threshold.
+
+        Use this for classical STV-style examples or other contests in which every
+        option should be evaluated against the same support target.
+        """
+        return cls.with_threshold_rule(
+            threshold_rule=ConstantThresholdRule(threshold=threshold)
+        )
+
+    @classmethod
+    def with_option_thresholds(
+        cls,
+        *,
+        thresholds_by_option: Mapping[OptionId, Decimal],
+    ) -> Self:
+        """Return Inclusive Gregory using explicit thresholds for each option.
+
+        Use this when option support targets are part of the run configuration rather
+        than being derived from one contest-wide constant.
+        """
+        return cls.with_threshold_rule(
+            threshold_rule=OptionThresholdMapRule(
+                thresholds_by_option=thresholds_by_option
+            )
         )
 
     def run(self, *, data: ContestData) -> ContestResult:
@@ -79,7 +126,7 @@ class InclusiveGregoryCountingMethod(RoundBasedCountingMethod):
                 )
                 continue
 
-            excluded_option_id = self.elimination_rule.exclude_option(
+            excluded_option_id = self.exclusion_rule.exclude_option(
                 data=data,
                 state=state,
                 thresholds=thresholds,

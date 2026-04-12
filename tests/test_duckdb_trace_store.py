@@ -17,13 +17,11 @@ def test_duckdb_trace_store_persists_run_rows(tmp_path: Path) -> None:
         options=(
             Option(
                 option_id="solar",
-                required_support=Decimal(10),
                 title="Solar",
                 description="Fund rooftop solar.",
             ),
             Option(
                 option_id="bikes",
-                required_support=Decimal(10),
                 title="Bikes",
                 description="Fund bike parking.",
             ),
@@ -45,7 +43,9 @@ def test_duckdb_trace_store_persists_run_rows(tmp_path: Path) -> None:
             Ballot(participant_id="bob", ranking=("bikes", "solar")),
         ),
     )
-    result = InclusiveGregoryCountingMethod.configured().run(data=contest_data)
+    result = InclusiveGregoryCountingMethod.with_uniform_threshold(
+        threshold=Decimal(10)
+    ).run(data=contest_data)
     trace_store = DuckDbTraceStore(database_path=tmp_path / "trace.duckdb")
 
     trace_store.write_result(

@@ -30,13 +30,11 @@ def build_contest_data() -> ContestData:
         options=(
             Option(
                 option_id="solar",
-                required_support=Decimal(10),
                 title="Solar",
                 description="Fund rooftop solar.",
             ),
             Option(
                 option_id="bikes",
-                required_support=Decimal(10),
                 title="Bikes",
                 description="Fund bike parking.",
             ),
@@ -101,7 +99,9 @@ class FakeTraceRepository(TraceRepository):
 def build_persisted_run() -> PersistedContestRun:
     """Return one persisted run object for API and service tests."""
     contest_data = build_contest_data()
-    result = InclusiveGregoryCountingMethod.configured().run(data=contest_data)
+    result = InclusiveGregoryCountingMethod.with_uniform_threshold(
+        threshold=Decimal(10)
+    ).run(data=contest_data)
     summary = PersistedContestRunSummary(
         run_id=uuid4(),
         created_at=datetime.now(),
@@ -121,7 +121,9 @@ def build_persisted_run() -> PersistedContestRun:
 def test_contest_delegates_to_counting_method() -> None:
     """Contest should return the configured counting method's result."""
     data = build_contest_data()
-    result = InclusiveGregoryCountingMethod.configured().run(data=data)
+    result = InclusiveGregoryCountingMethod.with_uniform_threshold(
+        threshold=Decimal(10)
+    ).run(data=data)
     contest = Contest(data=data, counting_method=StubCountingMethod(result=result))
 
     assert contest.run() == result
@@ -130,12 +132,15 @@ def test_contest_delegates_to_counting_method() -> None:
 def test_json_serialization_covers_inputs_and_results() -> None:
     """JSON helpers should serialize both immutable input data and counted results."""
     data = build_contest_data()
-    result = InclusiveGregoryCountingMethod.configured().run(data=data)
+    result = InclusiveGregoryCountingMethod.with_uniform_threshold(
+        threshold=Decimal(10)
+    ).run(data=data)
 
     serialized_data = serialize_contest_data(data)
     serialized_result = serialize_contest_result(result)
 
     assert serialized_data["options"][0]["option_id"] == "solar"
+    assert "required_support" not in serialized_data["options"][0]
     assert serialized_result["selected_option_ids"] == ["solar", "bikes"]
     assert serialized_result["snapshots"][0]["tallies"]["solar"] == "10"
     assert serialized_result["snapshots"][0]["exhausted_value"] == "0"

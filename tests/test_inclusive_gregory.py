@@ -12,13 +12,11 @@ def test_selects_options_that_meet_threshold_immediately() -> None:
         options=(
             Option(
                 option_id="solar",
-                required_support=Decimal(10),
                 title="Solar",
                 description="Fund rooftop solar.",
             ),
             Option(
                 option_id="bikes",
-                required_support=Decimal(10),
                 title="Bikes",
                 description="Fund bike parking.",
             ),
@@ -41,7 +39,9 @@ def test_selects_options_that_meet_threshold_immediately() -> None:
         ),
     )
 
-    result = InclusiveGregoryCountingMethod.configured().run(data=contest_data)
+    result = InclusiveGregoryCountingMethod.with_uniform_threshold(
+        threshold=Decimal(10)
+    ).run(data=contest_data)
 
     assert result.selected_option_ids == ("solar", "bikes")
 
@@ -52,13 +52,11 @@ def test_transfers_surplus_to_next_active_preference() -> None:
         options=(
             Option(
                 option_id="alpha",
-                required_support=Decimal(10),
                 title="Alpha",
                 description="Fund alpha.",
             ),
             Option(
                 option_id="beta",
-                required_support=Decimal(7),
                 title="Beta",
                 description="Fund beta.",
             ),
@@ -87,7 +85,12 @@ def test_transfers_surplus_to_next_active_preference() -> None:
         ),
     )
 
-    result = InclusiveGregoryCountingMethod.configured().run(data=contest_data)
+    result = InclusiveGregoryCountingMethod.with_option_thresholds(
+        thresholds_by_option={
+            "alpha": Decimal(10),
+            "beta": Decimal(7),
+        }
+    ).run(data=contest_data)
 
     assert result.selected_option_ids == ("alpha", "beta")
     assert result.snapshots[0].tallies["alpha"] == Decimal(12)
@@ -100,13 +103,11 @@ def test_excludes_unselected_option_when_no_surplus_reaches_it() -> None:
         options=(
             Option(
                 option_id="library",
-                required_support=Decimal(10),
                 title="Library",
                 description="Fund the library.",
             ),
             Option(
                 option_id="garden",
-                required_support=Decimal(10),
                 title="Garden",
                 description="Fund the garden.",
             ),
@@ -135,7 +136,48 @@ def test_excludes_unselected_option_when_no_surplus_reaches_it() -> None:
         ),
     )
 
-    result = InclusiveGregoryCountingMethod.configured().run(data=contest_data)
+    result = InclusiveGregoryCountingMethod.with_uniform_threshold(
+        threshold=Decimal(10)
+    ).run(data=contest_data)
 
     assert result.selected_option_ids == ("library",)
     assert result.final_state.statuses["garden"].value == "excluded"
+
+
+def test_uses_default_participant_weight_for_classical_stv_style_inputs() -> None:
+    """Participants can omit weight when a contest uses one-person-one-vote inputs."""
+    contest_data = ContestData(
+        options=(
+            Option(
+                option_id="alpha",
+                title="Alpha",
+                description="Alpha option.",
+            ),
+            Option(
+                option_id="beta",
+                title="Beta",
+                description="Beta option.",
+            ),
+        ),
+        participants=(
+            Participant(
+                participant_id="alice",
+                name="Alice",
+            ),
+            Participant(
+                participant_id="bob",
+                name="Bob",
+            ),
+        ),
+        ballots=(
+            Ballot(participant_id="alice", ranking=("alpha", "beta")),
+            Ballot(participant_id="bob", ranking=("beta", "alpha")),
+        ),
+    )
+
+    result = InclusiveGregoryCountingMethod.with_uniform_threshold(
+        threshold=Decimal(1)
+    ).run(data=contest_data)
+
+    assert contest_data.participants[0].weight == Decimal(1)
+    assert result.selected_option_ids == ("alpha", "beta")

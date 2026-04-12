@@ -8,12 +8,12 @@ from ranchovote.methods.inclusive_gregory import InclusiveGregoryCountingMethod
 from ranchovote.methods.meek import MeekCountingMethod
 from ranchovote.models import Ballot, ContestData, Option, Participant
 from ranchovote.rules.allocation import FirstActivePreferenceAllocationRule
-from ranchovote.rules.elimination import (
+from ranchovote.rules.exclusion import (
     InputOrderTieBreakRule,
-    LowestTallyEliminationRule,
+    LowestTallyExclusionRule,
 )
 from ranchovote.rules.selection import ThresholdSelectionRule
-from ranchovote.rules.thresholds import RequiredSupportThresholdRule
+from ranchovote.rules.thresholds import ConstantThresholdRule, OptionThresholdMapRule
 from ranchovote.rules.transfers import InclusiveGregorySurplusTransferRule
 from ranchovote.state import ContestState, OptionStatus
 from ranchovote.trace import TracePhaseType
@@ -25,13 +25,11 @@ def build_contest_data() -> ContestData:
         options=(
             Option(
                 option_id="alpha",
-                required_support=Decimal(10),
                 title="Alpha",
                 description="Fund alpha.",
             ),
             Option(
                 option_id="beta",
-                required_support=Decimal(5),
                 title="Beta",
                 description="Fund beta.",
             ),
@@ -68,13 +66,11 @@ def test_ballot_rejects_duplicate_rankings() -> None:
             (
                 Option(
                     option_id="dup",
-                    required_support=Decimal(1),
                     title="One",
                     description="One.",
                 ),
                 Option(
                     option_id="dup",
-                    required_support=Decimal(2),
                     title="Two",
                     description="Two.",
                 ),
@@ -83,7 +79,6 @@ def test_ballot_rejects_duplicate_rankings() -> None:
                 Participant(
                     participant_id="alice",
                     name="Alice",
-                    weight=Decimal(1),
                 ),
             ),
             (),
@@ -94,7 +89,6 @@ def test_ballot_rejects_duplicate_rankings() -> None:
             (
                 Option(
                     option_id="alpha",
-                    required_support=Decimal(1),
                     title="Alpha",
                     description="Alpha.",
                 ),
@@ -103,12 +97,10 @@ def test_ballot_rejects_duplicate_rankings() -> None:
                 Participant(
                     participant_id="dup",
                     name="Alice",
-                    weight=Decimal(1),
                 ),
                 Participant(
                     participant_id="dup",
                     name="Bob",
-                    weight=Decimal(1),
                 ),
             ),
             (),
@@ -119,7 +111,6 @@ def test_ballot_rejects_duplicate_rankings() -> None:
             (
                 Option(
                     option_id="alpha",
-                    required_support=Decimal(1),
                     title="Alpha",
                     description="Alpha.",
                 ),
@@ -128,7 +119,6 @@ def test_ballot_rejects_duplicate_rankings() -> None:
                 Participant(
                     participant_id="alice",
                     name="Alice",
-                    weight=Decimal(1),
                 ),
             ),
             (Ballot(participant_id="bob", ranking=("alpha",)),),
@@ -139,7 +129,6 @@ def test_ballot_rejects_duplicate_rankings() -> None:
             (
                 Option(
                     option_id="alpha",
-                    required_support=Decimal(1),
                     title="Alpha",
                     description="Alpha.",
                 ),
@@ -148,7 +137,6 @@ def test_ballot_rejects_duplicate_rankings() -> None:
                 Participant(
                     participant_id="alice",
                     name="Alice",
-                    weight=Decimal(1),
                 ),
             ),
             (
@@ -162,7 +150,6 @@ def test_ballot_rejects_duplicate_rankings() -> None:
             (
                 Option(
                     option_id="alpha",
-                    required_support=Decimal(1),
                     title="Alpha",
                     description="Alpha.",
                 ),
@@ -171,7 +158,6 @@ def test_ballot_rejects_duplicate_rankings() -> None:
                 Participant(
                     participant_id="alice",
                     name="Alice",
-                    weight=Decimal(1),
                 ),
             ),
             (Ballot(participant_id="alice", ranking=("missing",)),),
@@ -209,7 +195,9 @@ def test_counting_method_base_classes_expose_names_and_initial_state() -> None:
     """Configured counting methods should expose their names and seed runtime state."""
     data = build_contest_data()
 
-    inclusive_gregory = InclusiveGregoryCountingMethod.configured()
+    inclusive_gregory = InclusiveGregoryCountingMethod.with_uniform_threshold(
+        threshold=Decimal(10)
+    )
     assert inclusive_gregory.name == "inclusive-gregory"
     assert inclusive_gregory.initial_state(data=data).active_option_ids() == (
         "alpha",
@@ -217,7 +205,7 @@ def test_counting_method_base_classes_expose_names_and_initial_state() -> None:
     )
 
     meek = MeekCountingMethod(
-        threshold_rule=RequiredSupportThresholdRule(),
+        threshold_rule=ConstantThresholdRule(threshold=Decimal(10)),
         ballot_allocation_rule=FirstActivePreferenceAllocationRule(),
         selection_rule=ThresholdSelectionRule(),
         tie_break_rule=InputOrderTieBreakRule(),
@@ -280,8 +268,8 @@ def test_first_active_preference_allocation_handles_success_and_errors() -> None
         rule.allocation_for_ballot(ballot=ballot, data=data, state=missing_status_state)
 
 
-def test_selection_and_elimination_rules_cover_success_and_failure_paths() -> None:
-    """Selection and elimination rules should handle normal and invalid states."""
+def test_selection_and_exclusion_rules_cover_success_and_failure_paths() -> None:
+    """Selection and exclusion rules should handle normal and invalid states."""
     data = build_contest_data()
     state = ContestState.from_data(data)
     state.tallies["alpha"] = Decimal(10)
@@ -311,10 +299,10 @@ def test_selection_and_elimination_rules_cover_success_and_failure_paths() -> No
             thresholds={"alpha": Decimal(10)},
         )
 
-    elimination_rule = LowestTallyEliminationRule()
+    exclusion_rule = LowestTallyExclusionRule()
     tie_break_rule = InputOrderTieBreakRule()
     assert (
-        elimination_rule.exclude_option(
+        exclusion_rule.exclude_option(
             data=data,
             state=state,
             thresholds=thresholds,
@@ -327,7 +315,7 @@ def test_selection_and_elimination_rules_cover_success_and_failure_paths() -> No
     tied_state.tallies["alpha"] = Decimal(1)
     tied_state.tallies["beta"] = Decimal(1)
     assert (
-        elimination_rule.exclude_option(
+        exclusion_rule.exclude_option(
             data=data,
             state=tied_state,
             thresholds=thresholds,
@@ -339,7 +327,7 @@ def test_selection_and_elimination_rules_cover_success_and_failure_paths() -> No
     empty_state = ContestState.from_data(data)
     empty_state.statuses = dict.fromkeys(empty_state.statuses, OptionStatus.SELECTED)
     with pytest.raises(ValueError, match="no active options"):
-        elimination_rule.exclude_option(
+        exclusion_rule.exclude_option(
             data=data,
             state=empty_state,
             thresholds=thresholds,
@@ -352,6 +340,39 @@ def test_selection_and_elimination_rules_cover_success_and_failure_paths() -> No
             data=data,
             state=state,
             reason="test",
+        )
+
+
+def test_threshold_rules_support_uniform_and_option_specific_configuration() -> None:
+    """Threshold rules should support both contest-wide and per-option thresholds."""
+    data = build_contest_data()
+    state = ContestState.from_data(data)
+    uniform_rule = ConstantThresholdRule(threshold=Decimal(10))
+    mapped_rule = OptionThresholdMapRule(
+        thresholds_by_option={
+            "alpha": Decimal(10),
+            "beta": Decimal(5),
+        }
+    )
+
+    assert uniform_rule.threshold_for(
+        option=data.option_by_id("alpha"),
+        data=data,
+        state=state,
+    ) == Decimal(10)
+    assert mapped_rule.threshold_for(
+        option=data.option_by_id("beta"),
+        data=data,
+        state=state,
+    ) == Decimal(5)
+
+    with pytest.raises(ValueError, match="Missing configured threshold"):
+        OptionThresholdMapRule(
+            thresholds_by_option={"alpha": Decimal(10)}
+        ).threshold_for(
+            option=data.option_by_id("beta"),
+            data=data,
+            state=state,
         )
 
 
