@@ -101,7 +101,7 @@ jobs:
           cache-write: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
 
       - name: Run tests with coverage
-        run: pixi run test
+        run: pixi run pytest-coverage
 
       - name: Upload test artifacts
         if: always()
@@ -184,7 +184,7 @@ jobs:
   # This job runs on pull requests, pushes to main, and version tags after the
   # test suite passes. It verifies that the Python package can actually be
   # built, even when nothing will be published.
-  build-distributions:
+  dist-build:
     needs: pytest
     runs-on: ubuntu-latest
 
@@ -203,7 +203,7 @@ jobs:
           cache-write: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
 
       - name: Build release distributions
-        run: pixi run build-dist
+        run: pixi run dist-build
 
       - name: Upload distributions
         uses: actions/upload-artifact@v7
@@ -223,7 +223,7 @@ jobs:
       - trufflehog
       - pytest
       - docs-build
-      - build-distributions
+      - dist-build
     runs-on: ubuntu-latest
     environment:
       name: test-pypi

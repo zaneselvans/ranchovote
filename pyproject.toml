@@ -95,7 +95,7 @@ docs-build = "zensical build --clean"
 ruff-check = "ruff check --fix src tests scripts"
 ruff-format = "ruff format src tests scripts"
 taplo-format = "taplo format *.toml"
-tests = "pytest -n auto -ra -vv --color=yes --junitxml=junit.xml --cov --cov-report=term --cov-report=xml"
+pytest-coverage = "pytest -n auto -ra -vv --color=yes --junitxml=junit.xml --cov --cov-report=term --cov-report=xml"
 ty-check = "ty check src/ranchovote tests"
 
 [tool.coverage.run]
