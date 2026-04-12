@@ -1,14 +1,21 @@
 # Python-generated files
 __pycache__/
 *.py[oc]
+.coverage
 build/
+coverage.xml
 dist/
+junit.xml
 wheels/
 *.egg-info
 
 # Virtual environments
 .venv
+.hatch/
+.pixi/
+.prek/
 
 # Development crap
 .vscode/*
+*.code-workspace
 site/

@@ -1,0 +1,290 @@
+name: CI
+
+on:
+  # Run the validation pipeline for every pull request.
+  pull_request:
+  # Run the validation pipeline on pushes to main, and also on version tags.
+  push:
+    branches:
+      - main
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: read
+
+jobs:
+  # This job only runs for tag pushes. It confirms that the tag looks like a
+  # release tag and that the tagged commit is reachable from main.
+  verify-tag:
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Verify tagged commit is on main
+        run: |
+          git fetch origin main --depth=1
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+
+      - name: Verify tag format
+        run: |
+          ref_name="${GITHUB_REF#refs/tags/}"
+          case "$ref_name" in
+            v[0-9]*.[0-9]*.[0-9]*) ;;
+            *)
+              echo "Tag $ref_name does not match the required vX.Y.Z format." >&2
+              exit 1
+              ;;
+          esac
+
+  # This job runs on pull requests, pushes to main, and version tags.
+  # It validates the committed detect-secrets baseline against the full repo.
+  detect-secrets:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Pixi
+        uses: prefix-dev/setup-pixi@v0.9.5
+        with:
+          manifest-path: pyproject.toml
+          locked: true
+          cache: true
+          cache-write: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
+
+      - name: Run detect-secrets hook
+        run: pixi run detect-secrets
+
+  # This job runs on pull requests, pushes to main, and version tags.
+  # It performs TruffleHog secret scanning in CI because the hook is skipped in
+  # pre-commit.ci.
+  trufflehog:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Run TruffleHog
+        uses: trufflesecurity/trufflehog@v3.94.3
+        with:
+          extra_args: --results=verified,unknown
+
+  # This job runs on pull requests, pushes to main, and version tags.
+  # It executes the Python test suite, uploads coverage and JUnit artifacts, and
+  # reports both to Codecov.
+  pytest:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Pixi
+        uses: prefix-dev/setup-pixi@v0.9.5
+        with:
+          manifest-path: pyproject.toml
+          locked: true
+          cache: true
+          cache-write: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
+
+      - name: Run tests with coverage
+        run: pixi run test
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: pytest-artifacts
+          path: |
+            coverage.xml
+            junit.xml
+
+      - name: Upload coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v5
+        with:
+          use_oidc: true
+          disable_search: true
+          fail_ci_if_error: true
+          files: coverage.xml
+          flags: unittests
+          name: ubuntu-py314-coverage
+
+      - name: Upload test results to Codecov
+        if: always()
+        uses: codecov/codecov-action@v5
+        with:
+          use_oidc: true
+          disable_search: true
+          fail_ci_if_error: true
+          files: junit.xml
+          name: ubuntu-py314-tests
+          report_type: test_results
+
+  # This job runs on pull requests, pushes to main, and version tags.
+  # It verifies that the docs site builds successfully. On pushes to main it
+  # also uploads the built site artifact for the deploy job.
+  docs-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Pixi
+        uses: prefix-dev/setup-pixi@v0.9.5
+        with:
+          manifest-path: pyproject.toml
+          locked: true
+          cache: true
+          cache-write: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
+
+      - name: Build documentation
+        run: pixi run docs-build
+
+      - name: Upload pages artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+
+  # This job only runs on pushes to main. It depends on the docs build and
+  # deploys the uploaded Pages artifact to GitHub Pages.
+  docs-deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: docs-build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/deploy-pages@v4
+        id: deployment
+
+  # This job runs on pull requests, pushes to main, and version tags after the
+  # test suite passes. It verifies that the Python package can actually be
+  # built, even when nothing will be published.
+  build-distributions:
+    needs: pytest
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Pixi
+        uses: prefix-dev/setup-pixi@v0.9.5
+        with:
+          manifest-path: pyproject.toml
+          locked: true
+          cache: true
+          cache-write: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
+
+      - name: Build release distributions
+        run: pixi run build-dist
+
+      - name: Upload distributions
+        uses: actions/upload-artifact@v7
+        with:
+          name: python-package-distributions
+          path: dist/
+
+  # This job only runs for version tags after tag validation, security checks,
+  # tests, docs, and package-building all succeed. It attests the built
+  # artifacts and publishes the previously built distributions to TestPyPI
+  # using Trusted Publishing.
+  test-pypi-publish:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs:
+      - verify-tag
+      - detect-secrets
+      - trufflehog
+      - pytest
+      - docs-build
+      - build-distributions
+    runs-on: ubuntu-latest
+    environment:
+      name: test-pypi
+      url: https://test.pypi.org/project/ranchobud/
+    permissions:
+      id-token: write
+      attestations: write
+
+    steps:
+      - name: Retrieve release distributions
+        uses: actions/download-artifact@v8
+        with:
+          name: python-package-distributions
+          path: dist/
+
+      - name: Generate build provenance attestation
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: dist/*
+
+      - name: Publish release distributions to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+          repository-url: https://test.pypi.org/legacy/
+
+  # This job only runs for version tags after the TestPyPI publish succeeds.
+  # It signs the distributions with Sigstore and creates or updates the
+  # matching GitHub release with generated release notes and attached assets.
+  github-publish:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs:
+      - test-pypi-publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - name: Retrieve release distributions
+        uses: actions/download-artifact@v8
+        with:
+          name: python-package-distributions
+          path: dist/
+
+      - name: Sign distributions with Sigstore
+        uses: sigstore/gh-action-sigstore-python@v3.3.0
+        with:
+          inputs: |
+            ./dist/*.tar.gz
+            ./dist/*.whl
+
+      - name: Publish GitHub release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "${GITHUB_REF_NAME}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            gh release upload "${GITHUB_REF_NAME}" dist/* --clobber --repo "${GITHUB_REPOSITORY}"
+          else
+            gh release create "${GITHUB_REF_NAME}" dist/* \
+              --generate-notes \
+              --verify-tag \
+              --repo "${GITHUB_REPOSITORY}"
+          fi

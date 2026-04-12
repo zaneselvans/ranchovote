@@ -20,6 +20,7 @@ repos:
       - id: mixed-line-ending # Only newlines, no line-feeds.
         args: ["--fix=lf"]
       - id: name-tests-test # Follow PyTest naming convention.
+        args: [--pytest-test-first]
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: pretty-format-json
@@ -68,6 +69,12 @@ repos:
     hooks:
       - id: markdownlint-cli2
 
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: [--baseline, .secrets.baseline]
+
   # Check for errors in restructuredtext (.rst) files under the doc hierarchy
   - repo: https://github.com/PyCQA/doc8
     rev: v2.0.0
@@ -98,9 +105,14 @@ repos:
   # Type check python files
   - repo: local
     hooks:
+      - id: forbid-future-annotations-import
+        name: forbid from __future__ import annotations
+        entry: ^from __future__ import annotations$
+        language: pygrep
+        types: [python]
       - id: ty-check
         name: ty check
-        entry: uv run ty check
+        entry: pixi run python -m ty check src/ranchovote tests
         language: system
         types: [python]
         pass_filenames: false
@@ -115,5 +127,5 @@ ci:
   autoupdate_branch: main
   autoupdate_commit_msg: "[pre-commit.ci] pre-commit autoupdate"
   autoupdate_schedule: weekly
-  skip: [ty-check]
+  skip: [trufflehog, detect-secrets, ty-check]
   submodules: false

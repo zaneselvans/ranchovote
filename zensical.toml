@@ -1,13 +1,18 @@
 [project]
-site_name = "Ranked Choice Budgeting"
-site_description = "A package for coordinating collaborative ranked choice budgeting processes."
+site_name = "RanChoVote"
+site_description = "A package for coordinating collaborative ranked choice voting processes."
 site_author = "Zane Selvans"
-site_url = "https://zaneselvans.github.io/ranchobud"
+site_url = "https://zaneselvans.github.io/ranchovote"
 copyright = '<a href="https://creativecommons.org/licenses/by/4.0/">CC-BY-4.0</a> &copy; 2026 Zane Selvans'
-repo_name = "zaneselvans/ranchobud"
-repo_url = "https://github.com/zaneselvans/ranchobud"
+repo_name = "zaneselvans/ranchovote"
+repo_url = "https://github.com/zaneselvans/ranchovote"
 edit_uri = "edit/main/docs"
-plugins = { search = {}, tags = {}, "git-committers" = { repository = "zaneselvans/ranchobud", branch = "main" }, "git-revision-date-localized" = {} }
+nav = [
+  { Overview = "index.md" },
+  { Glossary = "glossary.md" },
+  { "Docs Build" = "docs-build.md" },
+  { "API Reference" = "api/index.md" },
+]
 
 [project.theme]
 language = "en"
@@ -55,6 +60,36 @@ name = "Zane Selvans on Mastodon"
 icon = "fontawesome/brands/linkedin"
 link = "https://www.linkedin.com/in/zane-selvans"
 name = "Zane Selvans on LinkedIn"
+
+[project.plugins.search]
+
+[project.plugins.tags]
+
+[project.plugins.gen-files]
+scripts = ["scripts/gen_ref_pages.py"]
+
+[project.plugins.mkdocstrings]
+default_handler = "python"
+
+[project.plugins.mkdocstrings.handlers.python]
+paths = ["src"]
+
+[project.plugins.mkdocstrings.handlers.python.options]
+docstring_style = "google"
+inherited_members = true
+merge_init_into_class = true
+separate_signature = true
+show_root_full_path = false
+show_root_heading = true
+show_root_members_full_path = false
+show_signature_annotations = true
+show_source = false
+
+[project.plugins.git-committers]
+repository = "zaneselvans/ranchovote"
+branch = "main"
+
+[project.plugins.git-revision-date-localized]
 
 [project.markdown_extensions]
 mdx_truly_sane_lists = {}
