@@ -44,6 +44,7 @@ specialization.
 - Prefer canonical literature names for election methods and rules.
 - Keep immutable input data separate from mutable election state.
 - Keep structured traces as the source of truth; text logs and JSON exports are derived views.
+- When the same concept crosses method interfaces, trace models, storage schema, and API responses, keep one field name across those layers instead of introducing layer-specific synonyms.
 - Update docstrings whenever changing substantive behavior.
 - Prefer popular, well-maintained, well-designed, and well-documented open source libraries over bespoke in-repo implementations for common needs.
 - Avoid catch-all modules like `utils.py` or `helpers.py`.
@@ -139,6 +140,7 @@ Run the smallest relevant set of checks for the files you changed.
 - Favor small deterministic fixtures over large opaque datasets.
 - Mirror test module names to the implementation modules they cover.
 - For contest methods, include both happy-path and transfer/elimination edge cases.
+- When renaming shared identifiers that appear in multiple layers, add or update a contract-style test that checks the names stay aligned across those layers.
 
 ## Notes For Agents
 

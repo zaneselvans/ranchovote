@@ -3,6 +3,7 @@
 ## References
 
 - [Single Transferable Vote](https://en.wikipedia.org/wiki/Single_transferable_vote) (Wikipedia)
+- [Single Transferable Vote](https://electowiki.org/wiki/Single_transferable_vote) (Electowiki)
 - [Single Transferable Vote](https://opavote.com/methods/single-transferable-vote) (OpaVote)
 - [Counting Single Transferable Votes](https://en.wikipedia.org/wiki/Counting_single_transferable_votes) (Wikipedia)
 - [Meek Single Transferable Vote](https://blog.opavote.com/2017/04/meek-stv-explained.html) (OpaVote)
