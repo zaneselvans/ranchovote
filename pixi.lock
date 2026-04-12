@@ -1784,8 +1784,8 @@ packages:
   requires_python: '>=3.9'
 - pypi: ./
   name: ranchovote
-  version: 0.0.2.dev5+gb0bf9235e.d20260412
-  sha256: 5b4080c3852fe30c86e12387494529dbfaf05db02e39ad5da30143680a8479a0
+  version: 0.0.2.dev6+g9138ea12f.d20260412
+  sha256: c17c509a3b9892a7d5e716bf16f034b8583d5a36eb332a566d75ac80e4b16497
   requires_dist:
   - duckdb-engine>=0.17.0
   - duckdb>=1.5.1

@@ -111,19 +111,19 @@ Run the smallest relevant set of checks for the files you changed.
 
 - `pixi run ruff-check`
 - `pixi run ruff-format`
-- `pixi run test`
-- `pixi run typecheck` when types or interfaces changed materially
+- `pixi run tests`
+- `pixi run ty-check` when types or interfaces changed materially
 
 ### Markdown changes
 
-- `pixi run mdformat`
-- `pixi run markdownlint`
+- `pixi run prek run mdformat --files <changed files>`
+- `pixi run prek run markdownlint --files <changed files>`
 
 ### TOML and YAML changes
 
-- `pixi run taplo-format`
+- `pixi run prek run taplo-format`
 - `pixi lock` after dependency changes
-- `pixi run prek --files pyproject.toml .pre-commit-config.yaml zensical.toml .github/workflows/*.yml`
+- `pixi run prek run --files pyproject.toml .pre-commit-config.yaml zensical.toml .github/workflows/*.yml`
 
 ### Documentation changes
 
@@ -131,9 +131,7 @@ Run the smallest relevant set of checks for the files you changed.
 
 ### Larger multi-file changes
 
-- `pixi run prek --files <changed files>` when a hook sweep is warranted
-
-If `prek` is not practical in the current environment, run the underlying tools directly.
+- `pixi run prek run --files <changed files>` when a hook sweep is warranted
 
 ## Testing Expectations
 

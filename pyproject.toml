@@ -90,13 +90,13 @@ typos = ">=1.45.0,<2"
 zensical = ">=0.0.32"
 
 [tool.pixi.tasks]
-build-dist = "HATCH_DATA_DIR=.hatch/data HATCH_CACHE_DIR=.hatch/cache python -m hatch build"
-docs-build = "python -m zensical build --clean"
-ruff-check = "ruff check --fix src tests"
-ruff-format = "ruff format src tests"
+dist-build = "HATCH_DATA_DIR=.hatch/data HATCH_CACHE_DIR=.hatch/cache python -m hatch build"
+docs-build = "zensical build --clean"
+ruff-check = "ruff check --fix src tests scripts"
+ruff-format = "ruff format src tests scripts"
 taplo-format = "taplo format *.toml"
 tests = "pytest -n auto -ra -vv --color=yes --junitxml=junit.xml --cov --cov-report=term --cov-report=xml"
-ty-check = "python -m ty check src/ranchovote tests"
+ty-check = "ty check src/ranchovote tests"
 
 [tool.coverage.run]
 branch = true
