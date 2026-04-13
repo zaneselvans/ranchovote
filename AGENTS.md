@@ -60,6 +60,7 @@ specialization.
 - Do not hand-edit `pixi.lock`; regenerate it with `pixi lock` after dependency changes.
 - Build distribution artifacts with `uvx build` rather than through the Pixi environment.
 - Hatch remains only as the configured build backend in `[build-system]`; do not depend on the Hatch CLI inside the repository development environment.
+- A current Pixi lock warning about `textual` requesting `markdown-it-py[linkify]` is known upstream metadata noise; ignore it unless it becomes a hard resolution failure or a user-visible runtime issue.
 
 ## Hook Runner
 
