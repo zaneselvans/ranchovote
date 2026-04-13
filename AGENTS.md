@@ -58,7 +58,8 @@ specialization.
 - Do not use `pip` directly for installing or syncing project dependencies.
 - Keep dependency metadata in `pyproject.toml` and treat `pixi.lock` as the generated lockfile.
 - Do not hand-edit `pixi.lock`; regenerate it with `pixi lock` after dependency changes.
-- The distribution build still uses Hatch, but it is invoked through `pixi run build-dist` rather than through an interactive Hatch workflow.
+- Build distribution artifacts with `uvx build` rather than through the Pixi environment.
+- Hatch remains only as the configured build backend in `[build-system]`; do not depend on the Hatch CLI inside the repository development environment.
 
 ## Hook Runner
 

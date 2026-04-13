@@ -17,12 +17,17 @@ This repository is set up around Pixi.
 Common commands:
 
 ```shell
-pixi run test
+pixi run pytest-coverage
 pixi run ruff-check
 pixi run ruff-format
-pixi run typecheck
+pixi run ty-check
 pixi run docs-build
-pixi run build-dist
+```
+
+Build Python distribution artifacts locally with:
+
+```shell
+uvx build
 ```
 
 ## Documentation
