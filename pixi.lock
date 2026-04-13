@@ -2110,8 +2110,8 @@ packages:
   timestamp: 1771717073430
 - pypi: ./
   name: ranchovote
-  version: 0.0.2.dev14+g3bebdf2e0.d20260413
-  sha256: 6bdb7f5ccd9b45af2514ef6411b31a4504f3f6f5dc3e57b1ba0a0071e361751b
+  version: 0.0.2.dev16+g919d6b45a.d20260413
+  sha256: b5bd0649fa7a28d0f0b6bc4694070cfa50804da4c656b2b508bcc12c532e1a7f
   requires_dist:
   - duckdb-engine>=0.17.0
   - duckdb>=1.5.1

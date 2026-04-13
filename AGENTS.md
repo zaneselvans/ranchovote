@@ -120,6 +120,12 @@ Run the smallest relevant set of checks for the files you changed.
 - `pixi run pytest-coverage`
 - `pixi run ty-check` whenever the change is substantial enough to justify `pixi run ruff-check`; it is fast and helps catch interface drift
 
+### Marimo notebook changes
+
+- Delegate notebook creation and substantive notebook rewrites to the `marimo-notebook` skill when it is available.
+- Run `pixi run ruff-check` and `pixi run ruff-format`, or the equivalent Ruff commands scoped to the changed notebook, after editing a marimo notebook.
+- Run `pixi run marimo check <changed notebook>` after editing a marimo notebook.
+
 ### Markdown changes
 
 - `pixi run prek run mdformat --files <changed files>`
@@ -151,4 +157,5 @@ Run the smallest relevant set of checks for the files you changed.
 
 - Before adding a new abstraction, check whether an existing `rules/` or `methods/` module is the better home.
 - Keep imports absolute within `src/ranchovote`.
+- Use the `marimo-pair` skill when working interactively inside a running marimo notebook session.
 - Do not reintroduce `src/ranchovote/ranchovote.py`.

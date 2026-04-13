@@ -71,8 +71,8 @@ mdx-truly-sane-lists = ">=1.3"
 
 [tool.pixi.tasks]
 docs-build = "zensical build --clean"
-ruff-check = "ruff check --fix src tests scripts"
-ruff-format = "ruff format src tests scripts"
+ruff-check = "ruff check --fix src tests scripts notebooks"
+ruff-format = "ruff format src tests scripts notebooks"
 taplo-format = "taplo format *.toml"
 pytest-coverage = "pytest -n auto -ra -vv --color=yes --junitxml=junit.xml --cov --cov-report=term --cov-report=xml"
 ty-check = "ty check src/ranchovote tests"
@@ -161,6 +161,7 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["D", "S101"]
+"notebooks/*.py" = ["ANN001", "ANN202", "B018", "D100", "N803"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["ranchovote"]
